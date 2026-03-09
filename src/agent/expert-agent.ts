@@ -19,11 +19,12 @@ export class ExpertAgent extends ComplianceAgent {
   /**
    * Execute a compliance job end-to-end:
    * 1. Verify own solvency
-   * 2. Calculate subcontract fee (50% upfront to auditor)
+   * 2. Calculate subcontract fee (20% to auditor — PRD §7.2)
    * 3. Pay auditor via A2A WDK transfer
    * 4. Await auditor result
-   * 5. Register attestation (mock Midnight)
-   * 6. Return result
+   * 5. Pay expert compute cost (2% of job — PRD §7.2)
+   * 6. Register attestation (mock Midnight)
+   * 7. Return result
    */
   async executeJob(job: JobRequest, auditor: AuditorAgent): Promise<JobResult> {
     console.log(`\n[${this.config.did}] === Starting job for ${job.companyId} ===`);
@@ -35,9 +36,9 @@ export class ExpertAgent extends ComplianceAgent {
     }
     console.log(`[${this.config.did}] Solvency verified, accepting job`);
 
-    // Step 2: Calculate subcontract (50% upfront to auditor)
-    const auditorUpfront = job.amount / 2n;
-    console.log(`[${this.config.did}] Subcontract: ${auditorUpfront} USDT upfront to auditor`);
+    // Step 2: Calculate subcontract (20% to auditor — PRD §7.2)
+    const auditorUpfront = job.amount / 5n;
+    console.log(`[${this.config.did}] Subcontract: ${auditorUpfront} USDT (20%) to auditor`);
 
     // Step 3: Pay auditor via A2A transfer
     const paymentResult = await this.payAgent(auditor.address, auditorUpfront);
@@ -49,7 +50,16 @@ export class ExpertAgent extends ComplianceAgent {
     const auditResult = await auditor.executeAudit(job.companyId, evidenceCid);
     console.log(`[${this.config.did}] Audit complete: score=${auditResult.score}, cid=${auditResult.policyCid}`);
 
-    // Step 5: Register attestation (mock Midnight call)
+    // Step 5: Pay expert compute cost (2% of job — PRD §7.2)
+    const expertComputeCost = job.amount / 50n;
+    console.log(`[${this.config.did}] Expert compute cost: ${expertComputeCost} USDT (2%)`);
+    this.emitEvent('compute_paid', {
+      agent: this.config.did,
+      cost: expertComputeCost.toString(),
+      type: 'expert_compute',
+    });
+
+    // Step 6: Register attestation (mock Midnight call)
     const attestationTx = await this.registerAttestation(
       job.companyId,
       auditResult.score,
@@ -57,7 +67,7 @@ export class ExpertAgent extends ComplianceAgent {
     );
     console.log(`[${this.config.did}] Attestation registered: ${attestationTx}`);
 
-    // Step 6: Build and return result
+    // Step 7: Build and return result
     const result: JobResult = {
       companyId: job.companyId,
       score: auditResult.score,

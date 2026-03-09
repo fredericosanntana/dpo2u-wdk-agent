@@ -37,14 +37,17 @@ export class AgentRegistry {
 
   /**
    * Check solvency after a job and transition status if needed.
+   * Probation triggered by balance < threshold OR 2+ consecutive payment failures (PRD §4.5).
    */
   async checkPostJobSolvency(agent: ComplianceAgent): Promise<boolean> {
     const solvent = await agent.checkSolvency();
+    const hasExcessiveFailures = agent.consecutiveFailures >= 2;
 
-    if (!solvent && agent.status === AgentStatus.Active) {
-      this.setProbation(agent);
-    } else if (solvent && agent.status === AgentStatus.Probation) {
-      // Agent recovered solvency
+    if (agent.status === AgentStatus.Active && (!solvent || hasExcessiveFailures)) {
+      const reason = !solvent ? 'insufficient balance' : `${agent.consecutiveFailures} consecutive payment failures`;
+      this.setProbation(agent, reason);
+    } else if (solvent && !hasExcessiveFailures && agent.status === AgentStatus.Probation) {
+      // Agent recovered solvency and no excessive failures
       agent.status = AgentStatus.Active;
       const reg = this.agents.get(agent.config.did);
       if (reg) {
@@ -53,23 +56,24 @@ export class AgentRegistry {
       console.log(`[AgentRegistry] ${agent.config.did} recovered solvency → Active`);
     }
 
-    return solvent;
+    return solvent && !hasExcessiveFailures;
   }
 
   /**
    * Set agent to probation status.
    */
-  setProbation(agent: ComplianceAgent): void {
+  setProbation(agent: ComplianceAgent, reason: string = 'insufficient balance'): void {
     agent.status = AgentStatus.Probation;
     const reg = this.agents.get(agent.config.did);
     if (reg) {
       reg.probationStartedAt = Date.now();
     }
-    console.log(`[AgentRegistry] ${agent.config.did} → Probation (insufficient balance)`);
+    console.log(`[AgentRegistry] ${agent.config.did} → Probation (${reason})`);
 
     this.emitEvent('status_change', {
       agent: agent.config.did,
       newStatus: AgentStatus.Probation,
+      reason,
     });
   }
 

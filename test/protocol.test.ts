@@ -203,6 +203,41 @@ describe('AgentRegistry', () => {
     assert.equal(registry.getActiveAgents().length, 0);
   });
 
+  it('should trigger probation on 2+ consecutive payment failures', async () => {
+    const wallet = createWallet();
+    const registry = new AgentRegistry();
+    const expert = new ComplianceAgent(expertConfig, wallet);
+
+    registry.registerAgent(expert);
+
+    // Agent is solvent but has 2 consecutive failures
+    expert.recordPaymentFailure();
+    expert.recordPaymentFailure();
+    assert.equal(expert.consecutiveFailures, 2);
+
+    await registry.checkPostJobSolvency(expert);
+    assert.equal(expert.status, AgentStatus.Probation);
+  });
+
+  it('should recover from failure-based probation after reset', async () => {
+    const wallet = createWallet();
+    const registry = new AgentRegistry();
+    const expert = new ComplianceAgent(expertConfig, wallet);
+
+    registry.registerAgent(expert);
+
+    // Trigger probation via failures
+    expert.recordPaymentFailure();
+    expert.recordPaymentFailure();
+    await registry.checkPostJobSolvency(expert);
+    assert.equal(expert.status, AgentStatus.Probation);
+
+    // Reset failures and check again — should recover
+    expert.recordPaymentSuccess();
+    await registry.checkPostJobSolvency(expert);
+    assert.equal(expert.status, AgentStatus.Active);
+  });
+
   it('should get agent by DID', () => {
     const wallet = createWallet();
     const registry = new AgentRegistry();

@@ -36,7 +36,7 @@ export class AuditorAgent extends ComplianceAgent {
     }
 
     // Step 2: Pay compute costs via x402
-    const computeCost = 1_000_000n; // 1 USDT compute cost
+    const computeCost = 5_000_000n; // 5 USDT compute + IPFS cost (PRD §7.2)
     console.log(`[${this.config.did}] Paying compute cost: ${computeCost} via x402`);
     const computeResult = await this.x402Client.payForCompute(
       this.wallet,

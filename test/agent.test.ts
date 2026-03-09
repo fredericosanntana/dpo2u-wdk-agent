@@ -84,6 +84,37 @@ describe('ComplianceAgent', () => {
     assert.equal(result.token, 'USDT');
   });
 
+  it('should track consecutive payment failures', async () => {
+    const wallet = createWallet();
+    const agent = new ComplianceAgent(expertConfig, wallet);
+
+    assert.equal(agent.consecutiveFailures, 0);
+
+    agent.recordPaymentFailure();
+    assert.equal(agent.consecutiveFailures, 1);
+
+    agent.recordPaymentFailure();
+    assert.equal(agent.consecutiveFailures, 2);
+
+    // Success resets the counter
+    agent.recordPaymentSuccess();
+    assert.equal(agent.consecutiveFailures, 0);
+  });
+
+  it('should reset failure counter on successful payment', async () => {
+    const wallet = createWallet();
+    const agent = new ComplianceAgent(expertConfig, wallet);
+    const auditorAddress = wallet.getAgentAddress(2);
+
+    agent.recordPaymentFailure();
+    agent.recordPaymentFailure();
+    assert.equal(agent.consecutiveFailures, 2);
+
+    // Successful A2A payment resets counter
+    await agent.payAgent(auditorAddress, 10_000_000n);
+    assert.equal(agent.consecutiveFailures, 0);
+  });
+
   it('should log events', async () => {
     const wallet = createWallet();
     const agent = new ComplianceAgent(expertConfig, wallet);
@@ -161,7 +192,7 @@ describe('AuditorAgent', () => {
     assert.equal(result.companyId, 'test_company');
     assert.ok(result.score >= 60 && result.score <= 100);
     assert.ok(result.policyCid.length > 0);
-    assert.equal(result.computeCost, 1_000_000n);
+    assert.equal(result.computeCost, 5_000_000n);
   });
 
   it('should produce deterministic scores', async () => {

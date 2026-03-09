@@ -15,7 +15,7 @@ DPO2U WDK Agent implements autonomous compliance agents with Tether WDK wallets 
 - Treasury wallet at index 0, Expert at index 1, Auditor at index 2
 
 ### 2. A2A (Agent-to-Agent) Payments
-- Expert subcontracts Auditor with 50% upfront USDT via `payAgent()`
+- Expert subcontracts Auditor with 20% upfront USDT via `payAgent()` (PRD §7.2)
 - All transfers are real ERC-20 USDT transfers (or mock for demo)
 - No human approval needed for A2A transfers
 
@@ -41,9 +41,10 @@ DPO2U WDK Agent implements autonomous compliance agents with Tether WDK wallets 
 - Solvency enforcement is automatic
 
 ### 7. Multi-Chain Integration
-- Midnight: ZK circuits for AgentRegistry, ComplianceRegistry, PaymentGateway, FeeDistributor
+- Midnight: ZK circuits for AgentRegistry, ComplianceRegistry, PaymentGateway, FeeDistributor (18 tests)
 - Polkadot EVM Hub: ComplianceRegistry (Solidity, deployed)
 - Starknet: ComplianceRegistry (Cairo, deployed)
+- Base Sepolia: ComplianceRegistry oracle (`dpo2u-base` repo)
 - Oracle integration for cross-chain compliance verification
 
 ### 8. OpenClaw Skill
@@ -79,6 +80,7 @@ npm run demo    # Run E2E demo with all 9 criteria
 ## Repository
 
 - `dpo2u-wdk-agent/` — This project (WDK Agent)
-- `dpo2u-midnight/` — Midnight ZK contracts (4 contracts, 25 tests)
+- `dpo2u-midnight/` — Midnight ZK contracts (4 contracts, 18 tests)
 - `dpo2u-polkadot/` — Polkadot ComplianceRegistry
 - `dpo2u-starknet/` — Starknet ComplianceRegistry
+- `dpo2u-base/` — Base Sepolia ComplianceRegistry oracle

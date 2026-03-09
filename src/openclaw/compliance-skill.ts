@@ -118,7 +118,7 @@ export class ComplianceSkill {
           parameters: {},
         },
       ],
-      chains: ['midnight', 'polkadot', 'starknet'],
+      chains: ['midnight', 'polkadot', 'starknet', 'base'],
       walletType: 'wdk-evm',
     };
   }

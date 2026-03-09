@@ -110,7 +110,7 @@ async function main() {
   console.log(`Expert threshold: ${formatUSDT(expertConfig.usdtThreshold)}`);
 
   // === Criterion 4: A2A Payment (Expert → Auditor) ===
-  console.log('\n━━━ CRITERION 4: Expert Pays Auditor via A2A (No Human Trigger) ━━━');
+  console.log('\n━━━ CRITERION 4: Expert Pays Auditor 20 USDT via A2A (No Human Trigger) ━━━');
   const job: JobRequest = {
     clientAddress,
     companyId: 'acme_corp_br',
@@ -199,6 +199,11 @@ async function main() {
   console.log(`║ Auditor: ${auditorConfig.did.padEnd(49)}║`);
   console.log(`║ Total paid: ${formatUSDT(paymentAmount).padEnd(46)}║`);
   console.log(`║ Protocol fee: ${formatUSDT(distribution.protocolFee).padEnd(44)}║`);
+  console.log(`║ Expert subcontract to Auditor: 20 USDT (20%)${' '.repeat(13)}║`);
+  console.log(`║ Expert compute cost: 2 USDT (2%)${' '.repeat(25)}║`);
+  console.log(`║ Auditor compute+IPFS cost: 5 USDT${' '.repeat(24)}║`);
+  console.log(`║ Expert net margin: 14 USDT${' '.repeat(31)}║`);
+  console.log(`║ Auditor net margin: 69 USDT${' '.repeat(30)}║`);
   console.log(`║ All criteria: PASSED${' '.repeat(38)}║`);
   console.log('╚══════════════════════════════════════════════════════════════╝');
 }

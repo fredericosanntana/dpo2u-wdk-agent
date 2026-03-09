@@ -74,9 +74,10 @@ npm run setup:agents
 
 ## Integration with Existing Contracts
 
-- **Midnight**: AgentRegistry, ComplianceRegistry, PaymentGateway, FeeDistributor (ZK circuits)
+- **Midnight**: AgentRegistry, ComplianceRegistry, PaymentGateway, FeeDistributor (ZK circuits, 18 tests)
 - **Polkadot**: ComplianceRegistry at `0x278B...` (EVM Hub)
 - **Starknet**: ComplianceRegistry at `0x052a...` (Cairo)
+- **Base Sepolia**: ComplianceRegistry oracle (`dpo2u-base` repo)
 
 ## 9 Judging Criteria
 

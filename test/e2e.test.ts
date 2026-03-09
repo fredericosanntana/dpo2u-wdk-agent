@@ -177,7 +177,7 @@ describe('E2E: Full Compliance Pipeline', () => {
     const manifest = ComplianceSkill.getManifest();
     assert.equal(manifest.name, 'dpo2u-compliance');
     assert.equal(manifest.capabilities.length, 3);
-    assert.deepEqual(manifest.chains, ['midnight', 'polkadot', 'starknet']);
+    assert.deepEqual(manifest.chains, ['midnight', 'polkadot', 'starknet', 'base']);
     assert.equal(manifest.walletType, 'wdk-evm');
   });
 });

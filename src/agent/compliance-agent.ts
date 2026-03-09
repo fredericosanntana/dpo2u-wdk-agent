@@ -12,10 +12,16 @@ export class ComplianceAgent {
   protected wallet: WDKWalletManager;
   private _status: AgentStatus = AgentStatus.Active;
   private eventLog: ProtocolEvent[] = [];
+  private _consecutiveFailures: number = 0;
 
   constructor(config: AgentConfig, wallet: WDKWalletManager) {
     this.config = config;
     this.wallet = wallet;
+    this._consecutiveFailures = config.consecutiveFailures ?? 0;
+  }
+
+  get consecutiveFailures(): number {
+    return this._consecutiveFailures;
   }
 
   get status(): AgentStatus {
@@ -75,18 +81,44 @@ export class ComplianceAgent {
   }
 
   /**
+   * Record a payment failure — increments consecutive failure counter (PRD §4.5).
+   */
+  recordPaymentFailure(): void {
+    this._consecutiveFailures++;
+    this.emitEvent('payment_failure', {
+      agent: this.config.did,
+      consecutiveFailures: this._consecutiveFailures,
+    });
+    console.log(`[${this.config.did}] Payment failure #${this._consecutiveFailures}`);
+  }
+
+  /**
+   * Record a payment success — resets consecutive failure counter (PRD §4.5).
+   */
+  recordPaymentSuccess(): void {
+    this._consecutiveFailures = 0;
+  }
+
+  /**
    * Pay another agent via A2A WDK transfer.
+   * Tracks consecutive failures/successes per PRD §4.5.
    */
   async payAgent(targetAddress: string, amount: bigint): Promise<TransferResult> {
     console.log(`[${this.config.did}] Paying ${amount} USDT to ${targetAddress}`);
-    const result = await this.wallet.sendUSDT(this.config.didIndex, targetAddress, amount);
-    this.emitEvent('agent_paid', {
-      from: this.config.did,
-      to: targetAddress,
-      amount: amount.toString(),
-      txHash: result.txHash,
-    });
-    return result;
+    try {
+      const result = await this.wallet.sendUSDT(this.config.didIndex, targetAddress, amount);
+      this.recordPaymentSuccess();
+      this.emitEvent('agent_paid', {
+        from: this.config.did,
+        to: targetAddress,
+        amount: amount.toString(),
+        txHash: result.txHash,
+      });
+      return result;
+    } catch (error) {
+      this.recordPaymentFailure();
+      throw error;
+    }
   }
 
   protected emitEvent(type: ProtocolEvent['type'], data: Record<string, unknown>): void {

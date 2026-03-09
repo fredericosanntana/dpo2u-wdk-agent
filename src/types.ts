@@ -9,6 +9,7 @@ export interface AgentConfig {
   role: 'expert' | 'auditor';
   usdtThreshold: bigint;    // minimum USDT balance to accept jobs (6 decimals)
   nightStaked: bigint;       // NIGHT tokens staked in protocol
+  consecutiveFailures?: number; // consecutive payment failures (PRD §4.5)
 }
 
 export interface JobRequest {
@@ -65,7 +66,7 @@ export interface TransferResult {
 }
 
 export interface ProtocolEvent {
-  type: 'payment_received' | 'fee_distributed' | 'agent_paid' | 'solvency_check' | 'status_change' | 'attestation_registered' | 'compute_paid';
+  type: 'payment_received' | 'fee_distributed' | 'agent_paid' | 'solvency_check' | 'status_change' | 'attestation_registered' | 'compute_paid' | 'payment_failure';
   timestamp: number;
   data: Record<string, unknown>;
 }
