@@ -1,0 +1,36 @@
+{
+  "name": "dpo2u-wdk-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "DPO2U WDK Agent — Autonomous compliance agents with WDK wallets, A2A USDT payments, and protocol-enforced solvency",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test test/*.test.ts",
+    "demo": "tsx scripts/demo-e2e.ts",
+    "test:wallet": "tsx scripts/test-wallet.ts",
+    "setup:agents": "tsx scripts/setup-agents.ts"
+  },
+  "keywords": [
+    "tether",
+    "wdk",
+    "compliance",
+    "agent",
+    "USDT",
+    "LGPD",
+    "GDPR",
+    "autonomous",
+    "A2A"
+  ],
+  "dependencies": {
+    "@tetherto/wdk": "^1.0.0-beta.6",
+    "@tetherto/wdk-wallet-evm": "^1.0.0-beta.8",
+    "@t402/wdk": "^2.6.0",
+    "ethers": "^6.13.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}
