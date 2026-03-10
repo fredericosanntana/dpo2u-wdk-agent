@@ -7,6 +7,7 @@ import { ExpertAgent } from '../agent/expert-agent.js';
 import { AuditorAgent } from '../agent/auditor-agent.js';
 import type { WDKWalletManager } from '../wallet/wdk-wallet.js';
 import { AgentRegistry } from '../protocol/agent-registry.js';
+import { HederaComplianceRegistry } from '../hedera/hedera-registry.js';
 import type { AgentConfig, JobResult } from '../types.js';
 
 export interface ComplianceSkillConfig {
@@ -14,12 +15,17 @@ export interface ComplianceSkillConfig {
   expertConfig: AgentConfig;
   auditorConfig: AgentConfig;
   x402Endpoint?: string;
+  hederaRegistryAddress?: string;
+  hederaRpc?: string;
+  hederaAgentDid?: string;
 }
 
 export class ComplianceSkill {
   private expert: ExpertAgent;
   private auditor: AuditorAgent;
   private registry: AgentRegistry;
+  private hederaRegistry?: HederaComplianceRegistry;
+  private hederaAgentDid?: string;
 
   constructor(config: ComplianceSkillConfig) {
     this.expert = new ExpertAgent(config.expertConfig, config.wallet);
@@ -27,6 +33,14 @@ export class ComplianceSkill {
     this.registry = new AgentRegistry();
     this.registry.registerAgent(this.expert);
     this.registry.registerAgent(this.auditor);
+
+    if (config.hederaRegistryAddress) {
+      this.hederaRegistry = new HederaComplianceRegistry(
+        config.hederaRegistryAddress,
+        config.hederaRpc,
+      );
+    }
+    this.hederaAgentDid = config.hederaAgentDid;
   }
 
   /**
@@ -85,9 +99,32 @@ export class ComplianceSkill {
   }
 
   /**
+   * Check compliance on Hedera Testnet for a given attestation ID.
+   */
+  async checkHederaCompliance(
+    attestationId: string,
+    minScore: number = 60,
+  ): Promise<{ isCompliant: boolean; score: number; attestation: unknown }> {
+    if (!this.hederaRegistry) {
+      throw new Error('Hedera registry not configured — provide hederaRegistryAddress');
+    }
+
+    const isCompliant = await this.hederaRegistry.isCompliant(attestationId, minScore);
+    const attestation = await this.hederaRegistry.getAttestation(attestationId);
+
+    console.log(`[ComplianceSkill] Hedera check: attestation=${attestationId}, compliant=${isCompliant}, score=${attestation.score}`);
+
+    return {
+      isCompliant,
+      score: attestation.score,
+      attestation,
+    };
+  }
+
+  /**
    * Get the OpenClaw skill manifest.
    */
-  static getManifest() {
+  static getManifest(hederaAgentDid?: string) {
     return {
       name: 'dpo2u-compliance',
       version: '1.0.0',
@@ -117,9 +154,18 @@ export class ComplianceSkill {
           description: 'Check solvency status of all compliance agents',
           parameters: {},
         },
+        {
+          name: 'checkHederaCompliance',
+          description: 'Query compliance attestation on Hedera Testnet',
+          parameters: {
+            attestationId: { type: 'string', required: true },
+            minScore: { type: 'number', min: 0, max: 100, required: false, default: 60 },
+          },
+        },
       ],
-      chains: ['midnight', 'polkadot', 'starknet', 'base'],
+      chains: ['midnight', 'polkadot', 'starknet', 'base', 'hedera'],
       walletType: 'wdk-evm',
+      ...(hederaAgentDid ? { hederaDid: hederaAgentDid } : {}),
     };
   }
 }

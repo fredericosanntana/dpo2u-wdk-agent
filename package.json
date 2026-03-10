@@ -7,6 +7,8 @@
     "build": "tsc",
     "test": "node --import tsx --test test/*.test.ts",
     "demo": "tsx scripts/demo-e2e.ts",
+    "demo:hedera": "tsx scripts/demo-e2e-hedera.ts",
+    "register:hedera-did": "tsx scripts/register-hedera-did.ts",
     "test:wallet": "tsx scripts/test-wallet.ts",
     "setup:agents": "tsx scripts/setup-agents.ts",
     "test:testnet": "tsx scripts/test-testnet-wallet.ts"
@@ -27,7 +29,8 @@
     "@tetherto/wdk-wallet-evm": "^1.0.0-beta.8",
     "@t402/wdk": "^2.6.0",
     "ethers": "^6.13.0",
-    "dotenv": "^16.4.0"
+    "dotenv": "^16.4.0",
+    "@hashgraphonline/standards-sdk": "latest"
   },
   "devDependencies": {
     "tsx": "^4.19.0",

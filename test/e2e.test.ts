@@ -176,8 +176,20 @@ describe('E2E: Full Compliance Pipeline', () => {
   it('should return correct OpenClaw manifest', () => {
     const manifest = ComplianceSkill.getManifest();
     assert.equal(manifest.name, 'dpo2u-compliance');
-    assert.equal(manifest.capabilities.length, 3);
-    assert.deepEqual(manifest.chains, ['midnight', 'polkadot', 'starknet', 'base']);
+    assert.equal(manifest.capabilities.length, 4);
+    assert.deepEqual(manifest.chains, ['midnight', 'polkadot', 'starknet', 'base', 'hedera']);
     assert.equal(manifest.walletType, 'wdk-evm');
+
+    // Hedera capability present
+    const hederaCap = manifest.capabilities.find(c => c.name === 'checkHederaCompliance');
+    assert.ok(hederaCap);
+    assert.ok(hederaCap!.parameters.attestationId);
+  });
+
+  it('should include HCS-10 DID in manifest when provided', () => {
+    const did = 'did:hedera:testnet:0.0.12345';
+    const manifest = ComplianceSkill.getManifest(did);
+    assert.equal((manifest as any).hederaDid, did);
+    assert.ok(manifest.chains.includes('hedera'));
   });
 });
